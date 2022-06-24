@@ -1,0 +1,139 @@
+﻿@model Calculator.Models.ViewModels.PayView
+
+@{
+    ViewData["Title"] = "Pay";
+
+}
+
+<h1>Salary Arrears Tool</h1>
+<h4>version 1.0</h4>
+
+
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form action="javascript:void(0);">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-group">
+                <label asp-for="CategoryId" class="control-label">Category</label>
+                <select asp-for="CategoryId" id="categoryId" class="form-control" asp-items="ViewBag.CategoryId"></select>
+                <span asp-validation-for="CategoryId" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label class="control-label">Staff Number</label>
+                <input id="staffNumber" class="form-control" required />
+                <span asp-validation-for="Step" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Dato" class="control-label">Start Month</label>
+                <input id="startMonth" class="form-control" type="month" />
+                <span asp-validation-for="Dato" class="text-danger"></span>
+            </div>
+            <div class="form-group row">
+                <div class="col-6 paidDiv  pt-3">
+                    <div class="form-group ">
+                        <input id="paidGrade" class="form-control" placeholder="PaidGrade" required />
+
+                    </div>
+                    <div class="form-group ">
+                        <input id="paidStep" class="form-control" placeholder="PaidStep" required />
+                        <span asp-validation-for="Step" class="text-danger"></span>
+                    </div>
+                </div>
+                <div class="col-6 expectedDiv pt-3">
+                    <div class="form-group ">
+
+                        <input id="expectedGrade" class="form-control" placeholder="ExpectedGrade" required />
+                        <span asp-validation-for="Grade" class="text-danger"></span>
+                    </div>
+                    <div class="form-group ">
+
+                        <input id="expectedStep" class="form-control" placeholder="ExpectedStep" required />
+                        <span asp-validation-for="Step" class="text-danger"></span>
+                    </div>
+                </div>
+
+            </div>
+            <div class="form-group">
+                <label asp-for="Dato" class="control-label">End Month</label>
+                <input id="endMonth" class="form-control" type="month" required />
+
+            </div>
+            <div class="form-group">
+                <input type="button" onclick="addRange()" class="btn form-control btn-default mt-2 btn-success btn-block " value="Assign" />
+            </div>
+
+            <div class="form-group">
+                <input type="button" onclick="postData()" class="btn btn-default btn-danger mt-4" value="Post" />
+            </div>
+        </form>
+    </div>
+
+    <div class="col-md-4">
+        @if (ViewBag.response != null)
+        {
+
+            <form action="javascript:void(0);">
+
+                <div class="form-group">
+                    <label class="control-label">Approved Stucture</label>
+                    <input type="text" class="form-control" value="@ViewBag.response.ApprovedStructure" />
+
+                </div>
+                <div class="form-group">
+                    <label class="control-label">Approved Amount</label>
+                    <input type="text" class="form-control" value="@ViewBag.response.ApprovedStructureAmount" />
+                </div>
+                <div class="form-group">
+                    <label class="control-label">Operational Stucture</label>
+                    <input type="text" class="form-control" value="@ViewBag.response.OpStructure" />
+
+                </div>
+                <div class="form-group">
+                    <label class="control-label">Operational Amount</label>
+                    <input type="text" class="form-control" value="@ViewBag.response.OpStructureAmount" />
+                </div>
+            </form>
+        }
+        else
+        {
+            <ul id="rangeList">
+            </ul>
+            <table id="resultTable" class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Start Month</th>
+                        <th>Paid Grade:Level</th>
+                        <th>Expected Grade:Level</th>
+                        <th>End Month</th>
+                        <th>Margin</th>
+                    </tr>
+                </thead>
+                <tbody id="resultTableBody">
+
+                </tbody>
+                <thead>
+                    <tr id="totalMargin">
+
+                    </tr>
+                </thead>
+            </table>
+        }
+
+
+
+
+    </div>
+
+
+
+</div>
+<div>
+    <a asp-action="Index">Back to List</a>
+</div>
+
+<script src="~/js/promo.js"></script>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

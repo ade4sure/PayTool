@@ -1,0 +1,155 @@
+﻿@model Calculator.Models.ViewModels.SalaryArrearsView
+
+@{
+    ViewData["Title"] = "Salary Arrears";
+
+}
+
+<h1>Salary Arrears</h1>
+
+
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="SalArrears" enctype="multipart/form-data">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-group">
+                <label asp-for="CategoryId" class="control-label">Staff Category</label>
+                <select asp-for="CategoryId" class="form-control" asp-items="ViewBag.CategoryId"></select>
+                <span asp-validation-for="CategoryId" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="File" class="control-label">Asset File (.CSV)</label>
+                <input asp-for="File" class="form-control" />
+                <span asp-validation-for="File" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Month" class="control-label"></label>
+                <input asp-for="Month" type="month" class="form-control" />
+                <span asp-validation-for="Month" class="text-danger"></span>
+            </div>
+            
+
+            <div class="form-group">
+                <input type="submit" value="Compute" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+
+    <div class="col-md-4">
+        @if (ViewBag.response != null)
+        {
+            <input type="button" class="btn btn-outline-success" value="Copy Result" onclick="selectElementContents( document.getElementById('myTable') );">
+
+            <table class="table" id="myTable">
+                <thead>
+                    <tr>
+                        <th>
+                            Staff Number
+                        </th>
+                        <th>
+                            Grade
+                        </th>
+                        <th>
+                            Step
+                        </th>
+                        <th>
+                            Month
+                        </th>
+                        <th>
+                            ApprovedStructure
+                        </th>
+                        <th>
+                            ApprovedPay
+                        </th>
+                        <th>
+                            OperationalStructure
+                        </th>
+
+                        <th>
+                            OperationalPay
+                        </th>
+                        <th>
+                            Margin
+                        </th>
+
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in ViewBag.response)
+                    {
+                        <tr>
+                            <td>
+                                @item.StaffNumber
+                            </td>
+                            <td>
+                                @item.Grade
+                            </td>
+                            <td>
+                                @item.Step
+                            </td>
+                            <td>
+                                @item.Month.ToString("MMMM yyyy")
+                            </td>
+                            <td>
+                                @item.AnalysisResponse.ApprovedStructure
+                            </td>
+                            <td>
+                                @item.AnalysisResponse.ApprovedStructureAmount.ToString("#.##")
+                            </td>
+                            <td>
+                                @item.AnalysisResponse.OpStructure
+                            </td>
+                            <td>
+                                @item.AnalysisResponse.OpStructureAmount.ToString("#.##")
+                            </td>
+                            <td>
+                                @item.AnalysisResponse.PayDiffrence.ToString("#.##")
+                            </td>
+
+                        </tr>
+                    }
+                </tbody>
+            </table>
+
+        }
+
+
+    </div>
+
+
+</div>
+<div>
+    <a asp-action="Index">Back to List</a>
+</div>
+
+<script>
+    $(document).ready(function () {
+        $('#myTable').DataTable();
+    });
+
+    function selectElementContents(el) {
+        var body = document.body, range, sel;
+        if (document.createRange && window.getSelection) {
+            range = document.createRange();
+            sel = window.getSelection();
+            sel.removeAllRanges();
+            try {
+                range.selectNodeContents(el);
+                sel.addRange(range);
+            } catch (e) {
+                range.selectNode(el);
+                sel.addRange(range);
+            }
+        } else if (body.createTextRange) {
+            range = body.createTextRange();
+            range.moveToElementText(el);
+            range.select();
+        }
+
+        document.execCommand('copy');
+    }
+
+</script>
+
+
