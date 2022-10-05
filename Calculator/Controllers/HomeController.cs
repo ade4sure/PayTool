@@ -16,7 +16,7 @@ using System.Threading.Tasks;
 
 namespace Calculator.Controllers
 {
-    public class HomeController : Controller
+    public partial class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
         private readonly IPayService _payService;

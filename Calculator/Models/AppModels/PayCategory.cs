@@ -2,7 +2,7 @@
 
 namespace Calculator.Models.AppModels
 {
-    public class PayCategory
+    public partial class PayCategory
     {
         public int Id { get; set; }
         public string Name { get; set; }

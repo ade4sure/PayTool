@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Calculator.Models.ViewModels
 {
-    public class SalaryArrearsView
+    public partial class SalaryArrearsView
     {
         public int CategoryId { get; set; }
         [Required]

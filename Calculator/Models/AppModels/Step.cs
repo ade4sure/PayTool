@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Calculator.Models.AppModels
 {
-    public class Step
+    public partial class Step
     {
         public int Id { get; set; }
         public int Number { get; set; }
@@ -78,12 +78,11 @@ namespace Calculator.Models.AppModels
             }
         }
 
-        [Column(TypeName = "decimal(18, 2)")]
         public decimal ShiftDutyOthersComputed
         {
             get
             {
-                return Math.Round( (decimal)(3.5 / 100) * Contiss, 2);
+                return Math.Round((decimal)(3.5 / 100) * Contiss, 2);
             }
         }
 

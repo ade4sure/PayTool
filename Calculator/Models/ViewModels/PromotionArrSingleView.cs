@@ -8,7 +8,7 @@ namespace Calculator.Models.ViewModels
 {
 
 
-    public class PromotionArr
+    public partial class PromotionArr
     {
         public int Id { get; set; }
         public int CategoryId { get; set; }
