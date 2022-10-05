@@ -1,6 +1,6 @@
 ﻿namespace Calculator.Models.ViewModels
 {
-    public class GetStructureresponse
+    public partial class GetStructureresponse
     {
 
         public string ApprovedStructure { get; set; }

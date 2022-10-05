@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace Calculator.Models.AppModels
 {
-    public class PaymentStructure
+    public partial class PaymentStructure
     {
         public int Id { get; set; }       
         public string Name { get; set; }

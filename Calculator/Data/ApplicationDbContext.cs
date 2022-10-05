@@ -1,4 +1,5 @@
 ﻿using Calculator.Models.AppModels;
+using Calculator.Models.ViewModels;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -20,6 +21,7 @@ namespace Calculator.Data
         public DbSet<Step> Steps { get; set; }
         public DbSet<EffectiveDate> EffectiveDates { get; set; }
         public DbSet<PayCategory> PayCategorys { get; set; }
+        public DbSet<PromotionArr> PromotionPayloads { get; set; }
 
 
     }

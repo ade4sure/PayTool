@@ -5,17 +5,18 @@ using CsvHelper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Logging;
-using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using System;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace Calculator.Controllers
 {
-    public class HomeController : Controller
+    public partial class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
         private readonly IPayService _payService;
@@ -48,7 +49,7 @@ namespace Calculator.Controllers
             payView.Dato.AddHours(5);
             var dat = payView.Dato;
 
-            var structure = await _payService.GetMonthlyPayDetails( payView);
+            var structure = await _payService.GetMonthlyPayDetails(payView);
 
             var res = await _payService.GetPayCategory();
 
@@ -71,10 +72,10 @@ namespace Calculator.Controllers
         [HttpPost]
         public async Task<IActionResult> SalArrears(SalaryArrearsView viewModel)
         {
-            IList<Staf> realUploads = await GetNorminalRollfromCSV(viewModel);
+            IList<Stafcsv> realUploads = await GetNorminalRollfromCSV(viewModel);
 
-            IList<SalaryArrearsResponse> Response = await ProcessNorminalRoll(viewModel, realUploads);         
-           
+            IList<SalaryArrearsResponse> Response = await ProcessNorminalRoll(viewModel, realUploads);
+
             ViewData["response"] = Response;
 
             ViewData["CategoryId"] = new SelectList(await _payService.GetPayCategory(), "Id", "Name");
@@ -82,19 +83,49 @@ namespace Calculator.Controllers
             return View();
         }
 
-         [HttpPost]
-        public async Task<IActionResult> PromoArrearsAsync([FromBody] PromotionArrManyView viewModel)
+        [HttpPost]
+        public async Task<IActionResult> PromoArrears([FromBody] PromotionArr vm)
         {
-            foreach (var range in viewModel.ranges)
-            {
-                range.Paid.Amount = (await GetMonthlyPayAsync(viewModel.CategoryId, range.StartMonth, range.Paid.Grade, range.Paid.Step)).OpStructureAmount;
-                range.Expected.Amount = (await GetMonthlyPayAsync(viewModel.CategoryId, range.StartMonth, range.Expected.Grade, range.Expected.Step)).OpStructureAmount;
-            }
+            vm.Ranges.OrderBy(o => o.StartMonth);
             
-            return Ok(viewModel);
+            foreach (var range in vm.Ranges)
+            {
+                //range.Paid.Amount = (await GetMonthlyPay(vm.CategoryId, range.StartMonth, range.Paid.Grade, range.Paid.Step, vm.Extras)).OpStructureAmount;
+                //range.Expected.Amount = (await GetMonthlyPay(vm.CategoryId, range.StartMonth, range.Expected.Grade, range.Expected.Step, vm.Extras)).OpStructureAmount;
+                // range.Paid.Amount = (await _payService.GetMonthlyPayDetails(new PayView { CategoryId = vm.CategoryId, Dato = range.StartMonth, Grade = range.Paid.Grade, Step = range.Paid.Step }, vm.Extras)).OpStructureAmount;
+                range.Paid.Amount = (await _payService.GetMonthlyPayDetails(new PayView { CategoryId = vm.CategoryId, Dato = range.StartMonth, Grade = range.Paid.Grade, Step = range.Paid.Step }, vm.Extras)).OpStructureAmount;
+                //range.Expected.Amount = (await _payService.GetMonthlyPayDetails(new PayView { CategoryId = vm.CategoryId, Dato = range.StartMonth, Grade = range.Expected.Grade, Step = range.Expected.Step }, vm.Extras)).ApprovedStructureAmount;
+                range.Expected.Amount = (await _payService.GetMonthlyPayDetails(new PayView { CategoryId = vm.CategoryId, Dato = range.StartMonth, Grade = range.Expected.Grade, Step = range.Expected.Step }, vm.Extras)).ApprovedStructureAmount;
+
+               
+            }
+
+            vm.ExtraJson = JsonSerializer.Serialize(vm.Extras);
+            vm.RangeJson = JsonSerializer.Serialize(vm.Ranges);
+
+            await _payService.SavePromoPayload(vm);
+
+            return Ok(vm);
         }
 
-        private async Task<IList<SalaryArrearsResponse>> ProcessNorminalRoll(SalaryArrearsView viewModel, IList<Staf> realUploads)
+        [Route("/Home/GetStaffPromo")]
+        [HttpGet("{staffNumber}")]
+        public async Task<IActionResult> GetStaffPromo(string staffNumber)
+        {
+            if (string.IsNullOrEmpty(staffNumber))
+            {
+                return BadRequest("Invalid number");
+            }
+
+            var promo = await _payService.LoadPromoPayload(staffNumber.Trim());
+            promo.Extras = JsonSerializer.Deserialize<Extras>(promo.ExtraJson);
+            promo.Ranges = JsonSerializer.Deserialize<List<MonthRange>>(promo.RangeJson);
+
+            return Ok(promo);
+
+        }
+
+        private async Task<IList<SalaryArrearsResponse>> ProcessNorminalRoll(SalaryArrearsView viewModel, IList<Stafcsv> realUploads)
         {
             IList<SalaryArrearsResponse> Response = new List<SalaryArrearsResponse>();
 
@@ -105,7 +136,8 @@ namespace Calculator.Controllers
                 decimal dif = 0;
                 var structure = new GetStructureresponse();
 
-                structure = await GetMonthlyPayAsync(viewModel.CategoryId, dat, stf.Grade, stf.Step);
+                //structure = await GetMonthlyPay(viewModel.CategoryId, dat, stf.Grade, stf.Step);
+                structure = (await _payService.GetMonthlyPayDetails(new PayView { CategoryId = viewModel.CategoryId, Dato = dat, Grade = stf.Grade, Step = stf.Step }, null));
                 dif += structure.PayDiffrence;
 
                 Response.Add(new SalaryArrearsResponse { StaffNumber = stf.StaffNumber, DifferenceSum = structure.PayDiffrence, Month = viewModel.Month, AnalysisResponse = structure, Grade = stf.Grade, Step = stf.Step });
@@ -115,14 +147,14 @@ namespace Calculator.Controllers
             return Response;
         }
 
-        private static async Task<IList<Staf>> GetNorminalRollfromCSV(SalaryArrearsView viewModel)
+        private static async Task<IList<Stafcsv>> GetNorminalRollfromCSV(SalaryArrearsView viewModel)
         {
             var MemStream = new MemoryStream();
 
             await viewModel.File.CopyToAsync(MemStream);
 
             MemStream.Position = 0;
-            IList<Staf> realUploads = new List<Staf>();
+            IList<Stafcsv> realUploads = new List<Stafcsv>();
 
 
             using (var reader = new StreamReader(MemStream))
@@ -130,7 +162,7 @@ namespace Calculator.Controllers
                 using (var csv = new CsvReader(reader, CultureInfo.InvariantCulture))
                 {
                     // csv.Configuration.RegisterClassMap<LoansImportMap>();
-                    var csvUpload = csv.GetRecords<Staf>();
+                    var csvUpload = csv.GetRecords<Stafcsv>();
                     foreach (var upl in csvUpload)
                     {
                         //staf.AmountAppliedFor = lon.AmountApproved;
@@ -152,21 +184,33 @@ namespace Calculator.Controllers
         {
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
-         
-        [ResponseCache(Duration =  30, Location = ResponseCacheLocation.Any, NoStore = true)]
-        public async Task<GetStructureresponse> GetMonthlyPayAsync(int CategoryId, DateTime Dato, int Grade ,int Step )
-        {
-            Debug.WriteLine("Grade = " + Grade + " Step = " + Step + " Dat = " + Dato + " CategoryId = " + CategoryId);
-
-            return await _payService.GetMonthlyPayDetails(new PayView {  CategoryId = CategoryId, Dato= Dato, Grade = Grade, Step= Step});
-
-        }
-
-        private class Staf
+        private class Stafcsv
         {
             public string StaffNumber { get; set; }
-            public int Step { get; set; }           
+            public int Step { get; set; }
             public int Grade { get; set; }
         }
+
+        public static int smallerNum(string n1, string n2)
+        {
+            var str = "ade";
+            var vowels = "aeiou".ToCharArray();
+
+            var inter = str.ToCharArray().Where(x => str.Contains(x));
+            //return str.Count(c => "aeiou".Contains(c));
+            //return str.Count(c => "aeiou".Contains(c));
+
+
+           return inter.Count();
+
+        //    Queue<String> customers = new Queue<String>();
+
+        //    customers.Enqueue("Mark");
+        //    customers.Enqueue("Pooja");
+        //    customers.Enqueue("Warren");
+        //    customers.
+        //
+        }
+
     }
 }

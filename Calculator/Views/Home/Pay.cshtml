@@ -5,71 +5,142 @@
 
 }
 
-<h1>Salary Arrears Tool</h1>
-<h4>version 1.0</h4>
+<h1>Promotion Arrears Tool</h1>
+<h4>Version 7</h4>
 
 
 <hr />
 <div class="row">
-    <div class="col-md-4">
+
+    <div class="reportOnly">
         <form action="javascript:void(0);">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <div class="form-group">
-                <label asp-for="CategoryId" class="control-label">Category</label>
-                <select asp-for="CategoryId" id="categoryId" class="form-control" asp-items="ViewBag.CategoryId"></select>
-                <span asp-validation-for="CategoryId" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label class="control-label">Staff Number</label>
-                <input id="staffNumber" class="form-control" required />
-                <span asp-validation-for="Step" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Dato" class="control-label">Start Month</label>
-                <input id="startMonth" class="form-control" type="month" />
-                <span asp-validation-for="Dato" class="text-danger"></span>
-            </div>
-            <div class="form-group row">
-                <div class="col-6 paidDiv  pt-3">
-                    <div class="form-group ">
-                        <input id="paidGrade" class="form-control" placeholder="PaidGrade" required />
+            <div>
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
-                    </div>
-                    <div class="form-group ">
-                        <input id="paidStep" class="form-control" placeholder="PaidStep" required />
-                        <span asp-validation-for="Step" class="text-danger"></span>
-                    </div>
-                </div>
-                <div class="col-6 expectedDiv pt-3">
-                    <div class="form-group ">
-
-                        <input id="expectedGrade" class="form-control" placeholder="ExpectedGrade" required />
-                        <span asp-validation-for="Grade" class="text-danger"></span>
-                    </div>
-                    <div class="form-group ">
-
-                        <input id="expectedStep" class="form-control" placeholder="ExpectedStep" required />
-                        <span asp-validation-for="Step" class="text-danger"></span>
+                <div class="form-group input-group px-0">
+                    <label class="control-label">Staff Number</label>
+                    <div class="input-group">
+                        <input id="staffNumber" class="form-control" required placeholder="Staff Number" />
+                        <div class="input-group-append">
+                            <button class="btn btn-info" type="button" onclick="getStaffPromo()">LookUp</button>
+                        </div>
                     </div>
                 </div>
 
-            </div>
-            <div class="form-group">
-                <label asp-for="Dato" class="control-label">End Month</label>
-                <input id="endMonth" class="form-control" type="month" required />
+                <div class="form-group">
+                    <label asp-for="CategoryId" class="control-label">Category</label>
+                    <select asp-for="CategoryId" id="categoryId" class="form-control" asp-items="ViewBag.CategoryId"></select>
+                    <span asp-validation-for="CategoryId" class="text-danger"></span>
+                </div>
 
-            </div>
-            <div class="form-group">
-                <input type="button" onclick="addRange()" class="btn form-control btn-default mt-2 btn-success btn-block " value="Assign" />
+                <div class="form-group">
+                    <label class="control-label">Staff FullName</label>
+                    <input id="staffName" class="form-control" placeholder="Staff Name" />
+                </div>
+                <div class="form-group">
+                    <label class="control-label">Staff Status</label>
+                    <input id="staffStatus" class="form-control" placeholder="Status/Designation" />
+                </div>
+                <div class="form-group">
+                    <label class="control-label">College/Faculty/Dept/Unit</label>
+                    <input id="staffUnit" class="form-control" required placeholder="College/Faculty/Dept/Unit" />
+                </div>
+                <div class="form-group row pl-3">
+
+                    <div class="col-6">
+                         <div class="form-check ">
+                            <input class="form-check-input" type="checkbox" id="isCallASUU" onchange="addCallDutyASUU()">
+                            <label class="form-check-label">Call Duty ASUU</label>
+                        </div>
+                        <div class="form-check ">
+                            <input class="form-check-input" type="checkbox" id="isCallNurses" onchange="addCallDutyNurses()">
+                            <label class="form-check-label">Call Duty Nurses</label>
+                        </div>
+                        <div class="form-check ">
+                            <input class="form-check-input" type="checkbox" id="isCallOthers" onchange="addCallDutyOthers()">
+                            <label class="form-check-label">Call Duty Others</label>
+                        </div>
+                    </div>
+
+                    <div class="col-6">
+                        <div class="form-check ">
+                            <input class="form-check-input" type="checkbox" id="isProff" onchange="addProfessional()">
+                            <label class="form-check-label"> Proff. Allowance </label>
+                        </div>
+                       
+                        <div class="form-check ">
+                            <input class="form-check-input" type="checkbox" id="isShiftNurses" onchange="addShiftDutyNurses()">
+                            <label class="form-check-label">Shift Duty Nurses</label>
+                        </div>
+                        <div class="form-check ">
+                            <input class="form-check-input" type="checkbox" id="isShiftOthers" onchange="addShiftDutyOthers()">
+                            <label class="form-check-label">Shift Duty Others</label>
+                        </div>
+                    </div>
+
+                </div>
             </div>
 
-            <div class="form-group">
-                <input type="button" onclick="postData()" class="btn btn-default btn-danger mt-4" value="Post" />
+            <div class="inputArea">
+                <div class="form-group">
+                    <label asp-for="Dato" class="control-label">Start Month</label>
+                    <input id="startMonth" class="form-control" type="month" />
+                </div>
+                <div class="form-group row">
+                    <div class="col-6 paidDiv  pt-3">
+                        <div class="form-group ">
+                            <input id="paidGrade" class="form-control" placeholder="PaidGrade" required />
+
+                        </div>
+                        <div class="form-group ">
+                            <input id="paidStep" class="form-control" placeholder="PaidStep" required />
+                            <span asp-validation-for="Step" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-6 expectedDiv pt-3">
+                        <div class="form-group ">
+
+                            <input id="expectedGrade" class="form-control" placeholder="ExpectedGrade" required />
+                            <span asp-validation-for="Grade" class="text-danger"></span>
+                        </div>
+                        <div class="form-group ">
+
+                            <input id="expectedStep" class="form-control" placeholder="ExpectedStep" required />
+                            <span asp-validation-for="Step" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="form-group">
+                    <label asp-for="Dato" class="control-label">End Month</label>
+                    <input id="endMonth" class="form-control" type="month" required />
+
+                </div>
+
+
+                <div class="form-group">
+                    <input type="button" onclick="addRange()" class="btn  btn-default mt-2 btn-success" value="Assign" />
+                </div>
+
+                <ul class="form-group" id="rangeList">
+                </ul>
+
+                <div class="form-group">
+                    <input type="button" onclick="postData()" class="btn btn-default btn-danger mt-4 btn-block" value="Compute" />
+                </div>
+                <div>
+                    <a asp-action="Index">Back to List</a>
+                </div>
             </div>
+
         </form>
+
+
     </div>
 
-    <div class="col-md-4">
+
+
+    <div class="col-md-4 printonly">
         @if (ViewBag.response != null)
         {
 
@@ -97,26 +168,27 @@
         }
         else
         {
-            <ul id="rangeList">
-            </ul>
+
             <table id="resultTable" class="table table-striped">
                 <thead>
                     <tr>
-                        <th>Start Month</th>
-                        <th>Paid Grade:Level</th>
-                        <th>Expected Grade:Level</th>
-                        <th>End Month</th>
-                        <th>Margin</th>
+                        <th>StartMonth</th>
+                        <th>Paid Grade</th>
+                        <th>Expected Grade</th>
+                        <th>EndMonth</th>
+                        <th>No. Months</th>
+                        <th>Pay Margin</th>
+                        <th>Range Amount</th>
                     </tr>
                 </thead>
                 <tbody id="resultTableBody">
-
                 </tbody>
-                <thead>
-                    <tr id="totalMargin">
-
+                <tfoot>
+                    <tr>
+                        <td colspan="6"><strong>Total</strong></td>
+                        <td id="totalMargin"></td>
                     </tr>
-                </thead>
+                </tfoot>
             </table>
         }
 
@@ -128,12 +200,7 @@
 
 
 </div>
-<div>
-    <a asp-action="Index">Back to List</a>
-</div>
+
 
 <script src="~/js/promo.js"></script>
 
-@section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
-}

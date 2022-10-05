@@ -3,14 +3,16 @@ using System;
 using Calculator.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace Calculator.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20220908153715_splitPay")]
+    partial class splitPay
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -116,19 +118,10 @@ namespace Calculator.Migrations
                     b.Property<decimal>("CallDutyOthers")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<decimal>("Conpuaa")
-                        .HasColumnType("decimal(18,2)");
-
                     b.Property<decimal>("Contiss")
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal>("ContissRent")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("Conuass")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("ConuassRent")
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal>("Conuss")

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Calculator.Models.ViewModels
 {
-    public class SalaryArrearsResponse
+    public partial class SalaryArrearsResponse
     {
         public string StaffNumber { get; set; }
         public decimal DifferenceSum { get; set; }

@@ -2,7 +2,7 @@
 
 namespace Calculator.Models.AppModels
 {
-    public class EffectiveDate
+    public partial class EffectiveDate
     {
         public int Id { get; set; }
         public DateTime ApprovedStartDate { get; set; }
