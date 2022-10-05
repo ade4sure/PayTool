@@ -2,7 +2,7 @@
 
 namespace Calculator.Models.AppModels
 {
-    public class Grade
+    public partial class Grade
     {
         public int Id { get; set; }
         public int Number { get; set; }

@@ -8,16 +8,8 @@ using System.Threading.Tasks;
 
 namespace Calculator.Services
 {
-    public interface IPayService
-    {
-        Task<GetStructureresponse> GetMonthlyPayDetails(PayView payView, Extras ExtraPayOptions = null);
-        Task<List<PayCategory>> GetPayCategory();
-        Task<bool> SavePromoPayload(PromotionArr PromoPayload);
-        Task<PromotionArr> LoadPromoPayload(string StaffNumber);
 
-    }
-
-    public class PayService : IPayService
+    public partial class PayService : IPayService
     {
         private readonly ApplicationDbContext _paycontext;
         private List<PayCategory> PayCategories { get; set; } = new List<PayCategory>();

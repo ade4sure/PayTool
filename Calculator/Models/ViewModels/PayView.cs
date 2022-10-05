@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace Calculator.Models.ViewModels
 {
-    public class PayView
+    public partial class PayView
     {
 
         public int CategoryId { get; set; }
