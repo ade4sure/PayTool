@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Calculator.Data
 {
-    public class ApplicationDbContext : IdentityDbContext
+    public class ApplicationDbContext : DbContext
     {
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options)
@@ -22,6 +22,7 @@ namespace Calculator.Data
         public DbSet<EffectiveDate> EffectiveDates { get; set; }
         public DbSet<PayCategory> PayCategorys { get; set; }
         public DbSet<PromotionArr> PromotionPayloads { get; set; }
+        public DbSet<Union> Unions { get; set; }
 
 
     }

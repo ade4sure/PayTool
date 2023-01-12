@@ -3,6 +3,7 @@ using Calculator.Models.AppModels;
 using Calculator.Models.ViewModels;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -12,6 +13,7 @@ namespace Calculator.Services
     public partial class PayService : IPayService
     {
         private readonly ApplicationDbContext _paycontext;
+        private bool _SavePayload = true;
         private List<PayCategory> PayCategories { get; set; } = new List<PayCategory>();
         private List<PaymentStructure> PaymentStructures { get; set; } = new List<PaymentStructure>();
 
@@ -37,8 +39,21 @@ namespace Calculator.Services
                                                             w.CategoryId == payView.CategoryId)
                                                 .FirstOrDefault();
 
-            var OpertionalPay = await GetMonthlyPay(OperationalPStructure, payView.Grade, payView.Step, ExtraPayOptions);
-            var ApprovedPay = await GetMonthlyPay(ApprovedPStructure, payView.Grade, payView.Step, ExtraPayOptions);
+            if (ApprovedPStructure.Id == OperationalPStructure.Id)
+            {
+                var OnlyPay = await GetMonthlyPay(OperationalPStructure,payView.UnionId, payView.Grade, payView.Step, ExtraPayOptions);
+
+                return new GetStructureresponse()
+                {
+                    ApprovedStructure = ApprovedPStructure.Name,
+                    ApprovedStructureAmount = OnlyPay,
+                    OpStructure = OperationalPStructure.Name,
+                    OpStructureAmount = OnlyPay
+                };
+            }
+
+            var OpertionalPay = await GetMonthlyPay(OperationalPStructure, payView.UnionId, payView.Grade, payView.Step, ExtraPayOptions);
+            var ApprovedPay = await GetMonthlyPay(ApprovedPStructure, payView.UnionId, payView.Grade, payView.Step, ExtraPayOptions);
 
             return new GetStructureresponse()
             {
@@ -50,7 +65,7 @@ namespace Calculator.Services
 
         }
 
-        public async Task<decimal> GetMonthlyPay(PaymentStructure Pstructure, int Grade, int Step, Extras ExtraPayOptions = null)
+        public async Task<decimal> GetMonthlyPay(PaymentStructure Pstructure, int UnionId, int Grade, int Step, Extras ExtraPayOptions = null)
         {
             //get applicable payment stuctures
             PaymentStructure OperationalPStructure = (await GetPaymentStructure())
@@ -62,6 +77,8 @@ namespace Calculator.Services
 
             decimal amnt = 0;
 
+            //Debug.WriteLine("Grade = " + Grade + "Step = " + Step + "Stucture =" + OperationalPStructure.Name  );
+
             if (Pstructure.CategoryId == 1)
             {
                 amnt = stp.NonTeachingAmount;
@@ -69,19 +86,23 @@ namespace Calculator.Services
             else
             {
                 amnt = stp.TeachingAmount;
+                Debug.WriteLine("Grade = " + Grade + " Step = " + Step + " Amount = " + amnt + " Stucture = " + OperationalPStructure.Name);
             }
-            
+
 
             if (ExtraPayOptions != null)
             {
-                amnt += ExtraPayOptions.IsProffesional ? stp.ProffesionalAllowance : 0;
+                if (ExtraPayOptions.IsProffesional)
+                {
+                    amnt += UnionId == 3 ? stp.ProffSsanu : 0;  //Add proffAllowance for SSANU
+                    amnt += UnionId == 2 ? stp.ProffNaat : 0; //Add proffAllowance for NAAT
+                }
                 amnt += ExtraPayOptions.IsShiftDutyNurse ? stp.ShiftDutyNurses : 0;
                 amnt += ExtraPayOptions.IsShiftDutyOthers ? stp.ShiftDutyOthersComputed : 0;
                 amnt += ExtraPayOptions.IsCallDutyNurse ? stp.CallDutyNurses : 0;
                 amnt += ExtraPayOptions.IsCallDutyOthers ? stp.CallDutyOthers : 0;
                 amnt += ExtraPayOptions.IsCallDutyASUU ? stp.CallDutyASUU : 0;
             }
-           
 
             return amnt;
 
@@ -124,6 +145,11 @@ namespace Calculator.Services
             else
             {
                 PromoPayload.Id = DBpayload.Id;
+                PromoPayload.staffNumber = PromoPayload.staffNumber.Trim();
+                PromoPayload.staffName = PromoPayload.staffName.Trim();
+                PromoPayload.staffStatus = PromoPayload.staffStatus.Trim();
+                PromoPayload.staffUnit = PromoPayload.staffUnit.Trim();
+                Debug.WriteLine("PayLoad id = " + DBpayload.Id + ":" + PromoPayload.Id + ", StaffName = " + DBpayload.staffName+ ", StaffNumber = " + DBpayload.staffNumber);
                 _paycontext.Update(PromoPayload);
             }
 
@@ -139,8 +165,39 @@ namespace Calculator.Services
                                .AsNoTracking()
                                .FirstOrDefaultAsync();
 
-            return prom==null ? new PromotionArr() : prom;
+            return prom == null ? new PromotionArr() : prom;
 
+        }
+
+        public async Task<List<Union>> GetUnion()
+        {
+
+            return await _paycontext.Unions.ToListAsync();
+
+        }
+
+        public async Task<List<string>> LoadUnionMembers(int UnionId)
+        {
+            var payload = await _paycontext.PromotionPayloads
+                               .Where(w => w.UnionId == UnionId)
+                               .AsNoTracking()
+                               .OrderBy(o => o.staffNumber)
+                               //.Skip(206)
+                               //.Take(207)
+                               .Select(s => s.staffNumber)
+                               .ToListAsync();
+            return payload != null ? payload : new List<string>();
+
+        }
+
+        public void ToggleSavePayload()
+        {
+            _SavePayload = !_SavePayload;
+        }
+
+        public bool GetSavePayload()
+        {
+            return _SavePayload;
         }
     }
 }

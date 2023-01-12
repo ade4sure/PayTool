@@ -11,6 +11,7 @@ const extras = {
 
 let promotionArrManyView = {
     'categoryId': 0,
+    'unionId': 0,
     'staffNumber': "0000",
     'staffName': "",
     'staffStatus': "",
@@ -54,6 +55,7 @@ function addRange() {
     promotionArrManyView.ranges.push(range);
 
     promotionArrManyView.categoryId = document.getElementById("categoryId").value;
+    promotionArrManyView.unionId = document.getElementById("unionId").value;
     promotionArrManyView.staffNumber = document.getElementById("staffNumber").value;
     promotionArrManyView.staffName = document.getElementById("staffName").value;
     promotionArrManyView.staffStatus = document.getElementById("staffStatus").value;
@@ -152,6 +154,23 @@ function addRow(item) {
 
 }
 
+function updateCategory() {
+    var categoryId = document.getElementById("categoryId");
+
+    promotionArrManyView.categoryId = categoryId.value;
+
+    //console.log(promotionArrManyView);
+
+}
+function updateUnion() {
+    var unionId = document.getElementById("unionId");
+
+    promotionArrManyView.unionId = unionId.value;
+
+    //console.log(promotionArrManyView);
+
+}
+
 function addProfessional() {
     var optionProf = document.getElementById("isProff");
     promotionArrManyView.extras.isProffesional = optionProf.checked ? true : false;
@@ -178,7 +197,9 @@ function addShiftDutyNurses() {
     var optionShift = document.getElementById("isShiftNurses");
     promotionArrManyView.extras.isShiftDutyNurse = optionShift.checked ? true : false;
     //console.log(promotionArrManyView);
-}function addShiftDutyOthers() {
+}
+
+function addShiftDutyOthers() {
     var optionShift = document.getElementById("isShiftOthers");
     promotionArrManyView.extras.isShiftDutyOthers = optionShift.checked ? true : false;
     //console.log(promotionArrManyView);
@@ -192,7 +213,9 @@ function removeElement(indx) {
 
 function reRenderUL() {
     var ul = document.getElementById("rangeList");
+    
     ul.innerHTML = "";
+    table.innerHTML = "";
     arrIndex = 0;
     promotionArrManyView.ranges.forEach(addLi);
 
@@ -200,7 +223,9 @@ function reRenderUL() {
 
 function reRenderUIinput() {
     promotionArrManyView.categoryId = promotionArrManyView.categoryId === 0 ? 1 : promotionArrManyView.categoryId;
+    promotionArrManyView.unionId = promotionArrManyView.unionId === 0 ? 1 : promotionArrManyView.unionId;
     document.getElementById("categoryId").value = promotionArrManyView.categoryId;
+    document.getElementById("unionId").value = promotionArrManyView.unionId;
     document.getElementById("staffName").value = promotionArrManyView.staffName;
     document.getElementById("staffStatus").value = promotionArrManyView.staffStatus;
     document.getElementById("staffUnit").value = promotionArrManyView.staffUnit;

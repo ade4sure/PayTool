@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text.Json;
@@ -12,7 +13,9 @@ namespace Calculator.Models.ViewModels
     {
         public int Id { get; set; }
         public int CategoryId { get; set; }
+        [Required]
         public string staffNumber { get; set; } = string.Empty;
+        [Required]
         public string staffName { get; set; } = string.Empty;
         public string staffStatus { get; set; } = string.Empty;
         public string staffUnit { get; set; } = string.Empty;
@@ -94,7 +97,7 @@ namespace Calculator.Models.ViewModels
         public decimal Amount { get; set; }
     }
     public class Extras
-    {
+    {     
         public bool IsProffesional { get; set; } = false;
         public bool IsCallDutyNurse { get; set; } = false;
         public bool IsCallDutyOthers { get; set; } = false;

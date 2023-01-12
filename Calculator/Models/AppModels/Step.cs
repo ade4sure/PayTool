@@ -46,12 +46,14 @@ namespace Calculator.Models.AppModels
         {
             get
             {
-                return (2 / 100) * Contiss;
+                decimal perCent = 2;
+                return decimal.Round(((perCent / 100) * Contiss), 2);
+                //return (perCent / 100) * Contiss;
             }
         }
 
         [Column(TypeName = "decimal(18, 2)")]
-        public decimal ProffSaanu
+        public decimal ProffSsanu
         {
             get
             {
@@ -74,7 +76,7 @@ namespace Calculator.Models.AppModels
                     perCent = 1.5M;
                 }
 
-                return (perCent / 100) * Contiss;
+                return perCent > 0 ? decimal.Round(((perCent / 100) * Contiss), 2) : 0;
             }
         }
 

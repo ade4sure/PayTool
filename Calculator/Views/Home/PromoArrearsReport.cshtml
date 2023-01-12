@@ -1,36 +1,25 @@
-﻿@model Calculator.Models.ViewModels.SalaryArrearsView
+﻿@model List<Calculator.Models.ViewModels.PromotionArrReportDto>
 
 @{
     ViewData["Title"] = "Salary Arrears";
 
 }
 
-<h1>Salary Arrears</h1>
+<h1>Promotion Arrears Report Generator</h1>
+
 
 <hr />
 <div class="row">
     <div class="col-md-4">
-        <form asp-action="SalArrears" enctype="multipart/form-data">
+        <form asp-action="PromoArrearsReport" enctype="multipart/form-data">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <div class="form-group">
-                <label asp-for="CategoryId" class="control-label">Staff Category</label>
-                <select asp-for="CategoryId" class="form-control" asp-items="ViewBag.CategoryId"></select>
-                <span asp-validation-for="CategoryId" class="text-danger"></span>
+                <label class="control-label">Staff Union</label>
+                <select name="UnionId" class="form-control" asp-items="ViewBag.UnionId"></select>
             </div>
-            <div class="form-group">
-                <label asp-for="File" class="control-label">Asset File (.CSV)</label>
-                <input asp-for="File" class="form-control" />
-                <span asp-validation-for="File" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Month" class="control-label"></label>
-                <input asp-for="Month" type="month" class="form-control" />
-                <span asp-validation-for="Month" class="text-danger"></span>
-            </div>
-            
 
             <div class="form-group">
-                <input type="submit" value="Compute" class="btn btn-primary" />
+                <input type="submit" value="Generate Report" class="btn btn-success" />
             </div>
         </form>
     </div>
@@ -47,29 +36,28 @@
                             Staff Number
                         </th>
                         <th>
-                            Grade
+                            Staff Name
                         </th>
                         <th>
-                            Step
+                            Category
                         </th>
                         <th>
-                            Month
+                            Status
                         </th>
                         <th>
-                            ApprovedStructure
+                            Unit
                         </th>
                         <th>
-                            ApprovedPay
+                            Last PromoEndDate
                         </th>
                         <th>
-                            OperationalStructure
-                        </th>
-
-                        <th>
-                            OperationalPay
+                            Paid GradeStep
                         </th>
                         <th>
-                            Margin
+                            Expected GradeStep
+                        </th>
+                        <th>
+                            Total PromoArrears
                         </th>
 
                     </tr>
@@ -82,28 +70,28 @@
                                 @item.StaffNumber
                             </td>
                             <td>
-                                @item.Grade
+                                @item.StaffName
                             </td>
                             <td>
-                                @item.Step
+                                @item.Category
                             </td>
                             <td>
-                                @item.Month.ToString("MMMM yyyy")
+                                @item.StaffStatus
                             </td>
                             <td>
-                                @item.AnalysisResponse.ApprovedStructure
+                                @item.StaffUnit
+                            </td> 
+                            <td>
+                                @item.LastEndMonth.ToString("MMMM yyyy")
                             </td>
                             <td>
-                                @item.AnalysisResponse.ApprovedStructureAmount.ToString("#.##")
+                                @item.LastPaidGradeStep
                             </td>
                             <td>
-                                @item.AnalysisResponse.OpStructure
+                                @item.LastExpectedGradeStep
                             </td>
                             <td>
-                                @item.AnalysisResponse.OpStructureAmount.ToString("#.##")
-                            </td>
-                            <td>
-                                @item.AnalysisResponse.PayDiffrence.ToString("#.##")
+                                @item.Variance.ToString("#.##")
                             </td>
 
                         </tr>

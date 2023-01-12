@@ -20,6 +20,7 @@ namespace Calculator.Controllers
     {
         private readonly ILogger<HomeController> _logger;
         private readonly IPayService _payService;
+        
 
         public HomeController(ILogger<HomeController> logger, IPayService payService)
         {
@@ -35,8 +36,10 @@ namespace Calculator.Controllers
         public async Task<IActionResult> Pay()
         {
             var res = await _payService.GetPayCategory();
-
             ViewData["CategoryId"] = new SelectList(res, "Id", "Name");
+
+            var Un = await _payService.GetUnion();
+            ViewData["UnionId"] = new SelectList(Un, "Id", "Name");
 
             return View();
         }
@@ -86,27 +89,93 @@ namespace Calculator.Controllers
         [HttpPost]
         public async Task<IActionResult> PromoArrears([FromBody] PromotionArr vm)
         {
-            vm.Ranges.OrderBy(o => o.StartMonth);
+           var ret =  await ComputePromotionArr(vm);
+
+            return Ok(ret);
+        }
+
+        private async Task<PromotionArr> ComputePromotionArr(PromotionArr vm)
+        {
             
-            foreach (var range in vm.Ranges)
+            var nuVM = vm;
+            nuVM.Ranges = vm.Ranges.OrderBy(o => o.StartMonth).ToList();
+
+            foreach (var range in nuVM.Ranges)
             {
                 //range.Paid.Amount = (await GetMonthlyPay(vm.CategoryId, range.StartMonth, range.Paid.Grade, range.Paid.Step, vm.Extras)).OpStructureAmount;
                 //range.Expected.Amount = (await GetMonthlyPay(vm.CategoryId, range.StartMonth, range.Expected.Grade, range.Expected.Step, vm.Extras)).OpStructureAmount;
                 // range.Paid.Amount = (await _payService.GetMonthlyPayDetails(new PayView { CategoryId = vm.CategoryId, Dato = range.StartMonth, Grade = range.Paid.Grade, Step = range.Paid.Step }, vm.Extras)).OpStructureAmount;
-                range.Paid.Amount = (await _payService.GetMonthlyPayDetails(new PayView { CategoryId = vm.CategoryId, Dato = range.StartMonth, Grade = range.Paid.Grade, Step = range.Paid.Step }, vm.Extras)).OpStructureAmount;
+                range.Paid.Amount = (await _payService.GetMonthlyPayDetails(new PayView { CategoryId = vm.CategoryId, UnionId = (int)vm.UnionId, Dato = range.StartMonth, Grade = range.Paid.Grade, Step = range.Paid.Step }, vm.Extras)).OpStructureAmount;
                 //range.Expected.Amount = (await _payService.GetMonthlyPayDetails(new PayView { CategoryId = vm.CategoryId, Dato = range.StartMonth, Grade = range.Expected.Grade, Step = range.Expected.Step }, vm.Extras)).ApprovedStructureAmount;
-                range.Expected.Amount = (await _payService.GetMonthlyPayDetails(new PayView { CategoryId = vm.CategoryId, Dato = range.StartMonth, Grade = range.Expected.Grade, Step = range.Expected.Step }, vm.Extras)).ApprovedStructureAmount;
+                range.Expected.Amount = (await _payService.GetMonthlyPayDetails(new PayView { CategoryId = vm.CategoryId, UnionId = (int)vm.UnionId, Dato = range.StartMonth, Grade = range.Expected.Grade, Step = range.Expected.Step }, vm.Extras)).ApprovedStructureAmount;
 
-               
+
             }
 
-            vm.ExtraJson = JsonSerializer.Serialize(vm.Extras);
-            vm.RangeJson = JsonSerializer.Serialize(vm.Ranges);
+            nuVM.ExtraJson = JsonSerializer.Serialize(nuVM.Extras);
+            nuVM.RangeJson = JsonSerializer.Serialize(nuVM.Ranges);
+            var Toggler = _payService.GetSavePayload();
+            if (Toggler != false)  await _payService.SavePromoPayload(nuVM);
 
-            await _payService.SavePromoPayload(vm);
-
-            return Ok(vm);
+            return nuVM;
         }
+
+        public async Task<IActionResult> PromoArrearsReport()
+        {
+            var res = await _payService.GetUnion();
+
+            ViewData["UnionId"] = new SelectList(res, "Id", "Name");
+
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> PromoArrearsReport(int UnionId)
+        {
+            if (UnionId < 1)
+            {
+                return BadRequest();
+            }
+
+            var staffs = await _payService.LoadUnionMembers(UnionId);
+
+            var payloads = new List<PromotionArrReportDto>();
+
+            foreach (var staffNumber in staffs)
+            {
+                var payload = await GetStaffPayload(staffNumber);
+              
+                if (_payService.GetSavePayload()) _payService.ToggleSavePayload();
+                payload = await ComputePromotionArr(payload);
+                payload.Ranges = payload.Ranges.OrderByDescending(o => o.EndMonth).OrderByDescending(d => d.StartMonth).ToList();
+                if (payload.Ranges.Count > 0)
+                {
+                    var Report = new PromotionArrReportDto()
+                    {
+                        Category = payload.CategoryId.ToString(),
+                        StaffName = payload.staffName,
+                        StaffNumber = payload.staffNumber,
+                        StaffStatus = payload.staffStatus,
+                        StaffUnit = payload.staffUnit,
+                        LastPaidGradeStep = payload.Ranges.FirstOrDefault().Paid.Grade + ":" + payload.Ranges.FirstOrDefault().Paid.Step,
+                        LastExpectedGradeStep = payload.Ranges.FirstOrDefault().Expected.Grade + ":" + payload.Ranges.FirstOrDefault().Expected.Step,
+                        LastEndMonth = payload.Ranges.FirstOrDefault().EndMonth,
+                        Variance = payload.TotalMargin
+                    };
+                    payloads.Add(Report);
+                }                
+            }
+
+            //Now run Compute on each payload and use the result to construct the response
+
+            ViewData["response"] = payloads;           
+
+            ViewData["UnionId"] = new SelectList(await _payService.GetUnion(), "Id", "Name", UnionId);
+
+            return View();
+        }
+
+
 
         [Route("/Home/GetStaffPromo")]
         [HttpGet("{staffNumber}")]
@@ -117,12 +186,19 @@ namespace Calculator.Controllers
                 return BadRequest("Invalid number");
             }
 
+            PromotionArr promo = await GetStaffPayload(staffNumber);
+
+            return Ok(promo);
+
+        }
+
+        private async Task<PromotionArr> GetStaffPayload(string staffNumber)
+        {
             var promo = await _payService.LoadPromoPayload(staffNumber.Trim());
             promo.Extras = JsonSerializer.Deserialize<Extras>(promo.ExtraJson);
             promo.Ranges = JsonSerializer.Deserialize<List<MonthRange>>(promo.RangeJson);
 
-            return Ok(promo);
-
+            return promo;
         }
 
         private async Task<IList<SalaryArrearsResponse>> ProcessNorminalRoll(SalaryArrearsView viewModel, IList<Stafcsv> realUploads)
@@ -201,15 +277,15 @@ namespace Calculator.Controllers
             //return str.Count(c => "aeiou".Contains(c));
 
 
-           return inter.Count();
+            return inter.Count();
 
-        //    Queue<String> customers = new Queue<String>();
+            //    Queue<String> customers = new Queue<String>();
 
-        //    customers.Enqueue("Mark");
-        //    customers.Enqueue("Pooja");
-        //    customers.Enqueue("Warren");
-        //    customers.
-        //
+            //    customers.Enqueue("Mark");
+            //    customers.Enqueue("Pooja");
+            //    customers.Enqueue("Warren");
+            //    customers.
+            //
         }
 
     }

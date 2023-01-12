@@ -9,6 +9,7 @@ namespace Calculator.Models.ViewModels
     {
 
         public int CategoryId { get; set; }
+        public int UnionId { get; set; }
         public string StaffNumber { get; set; }
         public int Step { get; set; }
         public DateTime Dato { get; set; }
